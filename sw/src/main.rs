@@ -3,6 +3,7 @@
 #![feature(type_alias_impl_trait)]
 #![feature(impl_trait_in_assoc_type)]
 
+use Level::{High, Low};
 use ch32_hal as hal;
 use embassy_executor::Spawner;
 use hal::delay::Delay;
@@ -15,17 +16,23 @@ async fn main(_spawner: Spawner) -> ! {
     config.rcc = hal::rcc::Config::SYSCLK_FREQ_48MHZ_HSI;
     let p = hal::init(config);
 
-    let mut read_vcc_en = Output::new(p.PC4, Level::Low, Default::default());
-    let mut sel_led = Output::new(p.PC5, Level::High, Default::default());
-    let mut mux_sel = Output::new(p.PC6, Level::Low, Default::default());
-    let mut sel_btn = ExtiInput::new(p.PC7, p.EXTI7, Pull::None);
+    let mut read_vcc_en = Output::new(p.PC4, Low, Default::default());
+    let mut sel_led = Output::new(p.PC5, High, Default::default());
+    let mut mux_sel = Output::new(p.PC6, Low, Default::default());
+    let sel_btn = ExtiInput::new(p.PC7, p.EXTI7, Pull::None);
 
     loop {
-        sel_btn.wait_for_falling_edge().await;
-        read_vcc_en.toggle();
-        sel_led.toggle();
-        mux_sel.toggle();
-        Delay.delay_ms(300);
+        if sel_btn.is_high() {
+            read_vcc_en.set_level(Low);
+            sel_led.set_level(High);
+            mux_sel.set_level(Low);
+        } else {
+            read_vcc_en.set_level(High);
+            sel_led.set_level(Low);
+            mux_sel.set_level(High);
+        }
+
+        Delay.delay_ms(100);
     }
 }
 
