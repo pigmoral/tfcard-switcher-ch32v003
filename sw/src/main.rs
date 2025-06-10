@@ -5,11 +5,12 @@
 
 use ch32_hal as hal;
 use embassy_executor::Spawner;
+use hal::delay::Delay;
 use hal::exti::ExtiInput;
 use hal::gpio::{Level, Output, Pull};
 
 #[embassy_executor::main(entry = "qingke_rt::entry")]
-async fn main(spawner: Spawner) -> ! {
+async fn main(_spawner: Spawner) -> ! {
     let mut config = hal::Config::default();
     config.rcc = hal::rcc::Config::SYSCLK_FREQ_48MHZ_HSI;
     let p = hal::init(config);
@@ -24,6 +25,7 @@ async fn main(spawner: Spawner) -> ! {
         read_vcc_en.toggle();
         sel_led.toggle();
         mux_sel.toggle();
+        Delay.delay_ms(300);
     }
 }
 
